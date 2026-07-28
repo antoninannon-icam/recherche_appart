@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chez nous — suivi des annonces</title>
+
+<!-- ════════════════════════════════════════════════════════════════
+     ⚙️  CONFIGURATION — À REMPLIR (une seule fois)
+     Récupère les 2 valeurs dans Supabase :
+     Project Settings → Data API / API Keys
+       • Project URL   → SUPABASE_URL
+       • anon public   → SUPABASE_ANON_KEY
+     Colle-les ci-dessous entre les guillemets, puis pousse sur GitHub.
+     Ta compagne n'a rien à installer : elle ouvre juste le même lien.
+════════════════════════════════════════════════════════════════ -->
+<script>
+  const SUPABASE_URL      = "https://jjuuyegszhcxmgfclrlo.supabase.co";      // ex : https://xxxx.supabase.co
+  const SUPABASE_ANON_KEY = "sb_publishable_0gshBWkSG0Kez0pzTvKQ3w_gb5U9t7S";  // la clé "anon public"
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,500&family=Inter:wght@400;450;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#ffffff;
+    --surface:#ffffff;
+    --line:#ececef;
+    --line-strong:#e0e1e4;
+    --ink:#17181a;
+    --muted:#6b7075;
+    --muted-soft:#9a9ea4;
+    --accent:#2b3a4a;
+    --accent-hover:#1f2c39;
+    --danger:#b3261e;
+    --radius-card:16px;
+    --radius-ctrl:10px;
+    --shadow:0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.05);
+    --shadow-lift:0 6px 16px rgba(16,24,40,.08), 0 2px 6px rgba(16,24,40,.05);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 80px}
+
+  /* ---------- Header ---------- */
+  header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+  .brand{display:flex;flex-direction:column;gap:2px}
+  .brand h1{
+    font-family:"Fraunces",Georgia,serif;
+    font-style:italic;font-weight:500;
+    font-size:30px;letter-spacing:-.01em;margin:0;line-height:1;
+  }
+  .brand .sub{color:var(--muted);font-size:13.5px}
+
+  .btn{
+    font:inherit;font-weight:600;font-size:14px;
+    border:1px solid transparent;border-radius:var(--radius-ctrl);
+    padding:10px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;
+    transition:background .15s ease,border-color .15s ease,transform .06s ease;
+    white-space:nowrap;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-primary:hover{background:var(--accent-hover)}
+  .btn-ghost{background:#fff;border-color:var(--line-strong);color:var(--ink)}
+  .btn-ghost:hover{background:#fafafa;border-color:#d3d4d8}
+  .btn-danger{background:#fff;border-color:#e7c9c7;color:var(--danger)}
+  .btn-danger:hover{background:#fdf3f2}
+  .btn svg{width:16px;height:16px;stroke-width:2}
+
+  /* ---------- Barre de suivi (statuts) ---------- */
+  .pipeline{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .chip{
+    font:inherit;font-size:13px;font-weight:500;
+    border:1px solid var(--line-strong);background:#fff;color:var(--muted);
+    border-radius:999px;padding:6px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+    transition:border-color .15s,background .15s,color .15s;
+  }
+  .chip:hover{border-color:#d0d1d5}
+  .chip .dot{width:8px;height:8px;border-radius:50%}
+  .chip .n{font-variant-numeric:tabular-nums;color:var(--muted-soft);font-weight:600}
+  .chip.on{color:var(--ink);border-color:var(--ink)}
+  .chip.on .n{color:var(--ink)}
+
+  /* ---------- Barre outils ---------- */
+  .tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:20px}
+  .search{position:relative;flex:1 1 220px;min-width:180px}
+  .search input{
+    width:100%;font:inherit;font-size:14px;
+    border:1px solid var(--line-strong);border-radius:var(--radius-ctrl);
+    padding:9px 12px 9px 34px;background:#fff;color:var(--ink);
+  }
+  .search input:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+  .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--muted-soft)}
+  select.sort{
+    font:inherit;font-size:14px;color:var(--ink);background:#fff;
+    border:1px solid var(--line-strong);border-radius:var(--radius-ctrl);padding:9px 12px;cursor:pointer;
+  }
+  select.sort:focus{outline:2px solid var(--accent);border-color:transparent}
+
+  /* ---------- Grille de cartes ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+  .card{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-card);
+    box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:12px;
+    transition:box-shadow .18s ease,border-color .18s ease,transform .18s ease;
+  }
+  .card:hover{box-shadow:var(--shadow-lift);border-color:var(--line-strong);transform:translateY(-1px)}
+  .card-photo{width:calc(100% + 36px);height:150px;object-fit:cover;margin:-18px -18px 4px;border-radius:16px 16px 0 0;display:block;background:#f2f3f5}
+  .card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .lieu{font-weight:600;font-size:16px;letter-spacing:-.01em;line-height:1.25}
+  .badge{
+    font-size:12px;font-weight:600;border-radius:999px;padding:4px 10px;white-space:nowrap;flex-shrink:0;
+  }
+  .prix{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1}
+  .prix small{font-size:13px;font-weight:500;color:var(--muted)}
+  .meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--muted);font-size:13.5px}
+  .meta b{color:var(--ink);font-weight:600}
+  .meta .yes{color:#15803d;font-weight:600}
+  .meta-amenities{gap:8px;margin-top:2px}
+  .tag{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:500;border-radius:8px;padding:4px 9px;background:#f5f6f7;color:var(--muted)}
+  .tag.on{background:#e8f6ee;color:#15803d;font-weight:600}
+  .tag.faint{color:var(--muted-soft)}
+  .comment{
+    color:var(--muted);font-size:13.5px;background:#fafafb;border:1px solid var(--line);
+    border-radius:10px;padding:9px 11px;white-space:pre-wrap;word-break:break-word;
+  }
+  .card-foot{display:flex;align-items:center;gap:8px;margin-top:2px;padding-top:12px;border-top:1px solid var(--line);flex-wrap:wrap}
+  .lien-annonce{color:var(--accent);font-weight:600;font-size:13.5px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-right:auto}
+  .lien-annonce:hover{text-decoration:underline}
+  .lien-annonce svg{width:13px;height:13px}
+  select.statut-quick{
+    font:inherit;font-size:12.5px;font-weight:500;
+    border:1px solid var(--line-strong);border-radius:8px;padding:5px 7px;background:#fff;color:var(--ink);cursor:pointer;
+  }
+  .icon-btn{
+    background:#fff;border:1px solid var(--line-strong);border-radius:8px;padding:5px;cursor:pointer;
+    display:inline-flex;color:var(--muted);transition:border-color .15s,color .15s,background .15s;
+  }
+  .icon-btn:hover{border-color:#d0d1d5;color:var(--ink)}
+  .icon-btn.del:hover{color:var(--danger);border-color:#e7c9c7;background:#fdf3f2}
+  .icon-btn svg{width:15px;height:15px;stroke-width:2}
+
+  /* ---------- États vides / message ---------- */
+  .empty{
+    text-align:center;padding:64px 20px;color:var(--muted);
+    border:1px dashed var(--line-strong);border-radius:var(--radius-card);background:#fcfcfd;
+  }
+  .empty h2{color:var(--ink);font-weight:600;font-size:17px;margin:0 0 6px}
+  .empty p{margin:0 0 18px;font-size:14px}
+
+  .setup{max-width:640px;margin:40px auto;background:#fff;border:1px solid var(--line);border-radius:var(--radius-card);box-shadow:var(--shadow);padding:28px}
+  .setup h2{margin:0 0 4px;font-size:20px}
+  .setup p{color:var(--muted);margin:0 0 16px;font-size:14px}
+  .setup ol{margin:0;padding-left:20px;color:var(--ink);font-size:14px;line-height:1.7}
+  .setup code{background:#f3f4f6;border-radius:6px;padding:1px 6px;font-size:13px}
+
+  /* ---------- Modale ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(20,22,26,.42);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;z-index:50}
+  .overlay.open{display:flex}
+  .modal{background:#fff;border-radius:18px;box-shadow:0 20px 50px rgba(16,24,40,.22);width:100%;max-width:480px;margin:auto 0;padding:24px}
+  .modal h2{margin:0 0 18px;font-size:19px;letter-spacing:-.01em}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:13px;font-weight:600;margin-bottom:5px}
+  .field input,.field select,.field textarea{
+    width:100%;font:inherit;font-size:14px;color:var(--ink);background:#fff;
+    border:1px solid var(--line-strong);border-radius:10px;padding:10px 12px;
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--accent);border-color:transparent}
+  .field textarea{resize:vertical;min-height:64px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .check{display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none;font-size:14px;font-weight:500}
+  .check input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
+  .modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:8px}
+
+  .lien-row{display:flex;gap:8px;align-items:stretch}
+  .lien-row input{flex:1;min-width:0}
+  .btn-analyse{
+    flex-shrink:0;border:1px solid var(--accent);background:var(--accent);color:#fff;
+    border-radius:10px;padding:0 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+    font:inherit;font-size:13px;font-weight:600;
+  }
+  .btn-analyse:hover{background:var(--accent-hover)}
+  .btn-analyse:disabled{opacity:.65;cursor:default}
+  .btn-analyse svg{width:15px;height:15px;stroke-width:2}
+  .btn-analyse.loading svg{animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .analyse-msg{font-size:12.5px;margin-top:6px;min-height:1em;line-height:1.35}
+  .analyse-msg.ok{color:#15803d}
+  .analyse-msg.err{color:var(--danger)}
+  .etoile{color:var(--danger);font-weight:700;margin-left:4px;display:none}
+
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--ink);color:#fff;font-size:13.5px;font-weight:500;padding:10px 18px;border-radius:999px;box-shadow:var(--shadow-lift);transition:opacity .2s,transform .2s;pointer-events:none;z-index:60}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (max-width:520px){
+    .wrap{padding:20px 14px 70px}
+    .brand h1{font-size:26px}
+    .grid{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+  /* ---------- Écran connexion / espace ---------- */
+  .gate-screen{position:fixed;inset:0;background:#fff;display:none;align-items:center;justify-content:center;padding:24px;z-index:70}
+  .gate-screen.open{display:flex}
+  .gate-card{width:100%;max-width:400px}
+  .gate-card h1{font-family:"Fraunces",Georgia,serif;font-style:italic;font-weight:500;font-size:30px;margin:0 0 6px;line-height:1}
+  .gate-card p{color:var(--muted);margin:0 0 20px;font-size:14px;line-height:1.5}
+  .gate-card label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.02em}
+  .gate-card .field{margin-bottom:12px}
+  .gate-card input{width:100%;font:inherit;font-size:15px;border:1px solid var(--line-strong);border-radius:10px;padding:11px 13px}
+  .gate-card input:focus{outline:2px solid var(--accent);border-color:transparent}
+  .gate-card .btn{width:100%;justify-content:center;padding:12px}
+  .gate-sep{display:flex;align-items:center;gap:12px;color:var(--muted-soft);font-size:12px;margin:20px 0}
+  .gate-sep::before,.gate-sep::after{content:"";flex:1;height:1px;background:var(--line)}
+  .gate-msg{font-size:13px;margin-top:12px;min-height:1em;line-height:1.4}
+  .gate-msg.err{color:var(--danger)}
+  .gate-msg.ok{color:#15803d}
+  .linkbtn{background:none;border:none;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;padding:0;margin-top:20px;display:block}
+</style>
+</head>
+<body>
+<div class="gate-screen" id="gate"></div>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Chez nous</h1>
+      <span class="sub" id="sousTitre">Suivi de nos annonces</span>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost" id="btnLogout" title="Se déconnecter">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg>
+      </button>
+      <button class="btn btn-ghost" id="btnRefresh" title="Recharger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.65 4.36A9 9 0 0 0 20.5 15"/></svg>
+      </button>
+      <button class="btn btn-primary" id="btnAdd">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14"/></svg>
+        Ajouter une annonce
+      </button>
+    </div>
+  </header>
+
+  <div id="pipeline" class="pipeline"></div>
+
+  <div class="tools">
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="recherche" type="search" placeholder="Rechercher un lieu…" autocomplete="off" />
+    </div>
+    <select class="sort" id="tri">
+      <option value="recent">Plus récentes</option>
+      <option value="prix_asc">Prix croissant</option>
+      <option value="prix_desc">Prix décroissant</option>
+      <option value="surface_desc">Surface décroissante</option>
+      <option value="lieu">Lieu (A→Z)</option>
+    </select>
+  </div>
+
+  <div id="contenu"></div>
+</div>
+
+<!-- Modale ajout / édition -->
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitre">
+    <h2 id="modalTitre">Nouvelle annonce</h2>
+    <input type="hidden" id="f_id" />
+    <div class="field">
+      <label for="f_lien">Lien de l'annonce</label>
+      <div class="lien-row">
+        <input id="f_lien" type="url" placeholder="Colle le lien SeLoger / Leboncoin…" />
+        <button type="button" class="btn-analyse" id="btnAnalyse" title="Analyser le lien et pré-remplir les champs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.65 4.36A9 9 0 0 0 20.5 15"/></svg>
+          <span>Analyser</span>
+        </button>
+      </div>
+      <div class="analyse-msg" id="analyseMsg"></div>
+    </div>
+    <div class="field">
+      <label for="f_lieu">Localisation<span class="etoile" id="star_f_lieu" title="Non trouvé par l'analyse — à remplir">★</span></label>
+      <input id="f_lieu" type="text" placeholder="ex : Champigny-sur-Marne" />
+    </div>
+    <div class="field">
+      <label for="f_photo">Photo (lien de l'image)</label>
+      <input id="f_photo" type="url" placeholder="Remplie par l'analyse, ou colle un lien d'image" />
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="f_prix">Prix (€/mois)<span class="etoile" id="star_f_prix" title="Non trouvé par l'analyse — à remplir">★</span></label>
+        <input id="f_prix" type="number" min="0" inputmode="numeric" placeholder="1250" />
+      </div>
+      <div class="field">
+        <label for="f_surface">Surface (m²)<span class="etoile" id="star_f_surface" title="Non trouvé par l'analyse — à remplir">★</span></label>
+        <input id="f_surface" type="number" min="0" step="0.5" inputmode="decimal" placeholder="45" />
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="f_pieces">Nombre de pièces<span class="etoile" id="star_f_pieces" title="Non trouvé par l'analyse — à remplir">★</span></label>
+        <input id="f_pieces" type="number" min="0" inputmode="numeric" placeholder="2" />
+      </div>
+      <div class="field">
+        <label for="f_statut">Statut</label>
+        <select id="f_statut"></select>
+      </div>
+    </div>
+    <div class="field">
+      <label class="check"><input type="checkbox" id="f_balcon" /> Balcon / terrasse</label>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="f_parking">Place de parking</label>
+        <select id="f_parking">
+          <option value="Non">Non</option>
+          <option value="Oui">Oui</option>
+          <option value="Oui, payant">Oui, mais payant</option>
+          <option value="À déterminer">À déterminer</option>
+        </select>
+      </div>
+      <div class="field" id="parkingPrixField" style="display:none">
+        <label for="f_parking_prix">Prix parking (€/mois)</label>
+        <input id="f_parking_prix" type="number" min="0" inputmode="numeric" placeholder="50" />
+      </div>
+    </div>
+    <div class="field">
+      <label for="f_commentaire">Commentaire</label>
+      <textarea id="f_commentaire" placeholder="Ce qu'on en pense, points de vigilance, disponibilité…"></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="btnCancel">Annuler</button>
+      <button class="btn btn-primary" id="btnSave">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ─────────────────────────── Statuts ─────────────────────────── */
+const STATUTS = [
+  { key:"À contacter",           dot:"#8a8f98", color:"#5a5f66", bg:"#f3f4f6" },
+  { key:"Contacté",              dot:"#2563eb", color:"#1d4ed8", bg:"#eaf1fe" },
+  { key:"Visite prévue",         dot:"#d97706", color:"#b45309", bg:"#fbf1e2" },
+  { key:"Visité",                dot:"#7c3aed", color:"#6d28d9", bg:"#f2ecfc" },
+  { key:"En attente de réponse", dot:"#ea580c", color:"#c2410c", bg:"#fcefe7" },
+  { key:"Refusé",                dot:"#dc2626", color:"#b91c1c", bg:"#fbeceb" },
+  { key:"Accepté",               dot:"#16a34a", color:"#15803d", bg:"#e8f6ee" },
+];
+const metaStatut = k => STATUTS.find(s=>s.key===k) || STATUTS[0];
+
+/* ─────────────────────────── État ─────────────────────────── */
+let sb = null;
+let annonces = [];
+let filtre = "all";
+let utilisateur = null;
+let groupeId = null;
+let pollTimer = null;
+const state = { tri:"recent", recherche:"" };
+
+/* ─────────────────────────── Démarrage ─────────────────────────── */
+const configuré = SUPABASE_URL && SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY && SUPABASE_ANON_KEY.length > 20;
+
+window.addEventListener("DOMContentLoaded", async () => {
+  remplirSelectStatut();
+  brancherEvenements();
+  if(!configuré){ afficherSetup(); return; }
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  sb.auth.onAuthStateChange((_e, session) => setTimeout(()=>majSession(session), 0));
+  const { data:{ session } } = await sb.auth.getSession();
+  majSession(session);
+});
+
+// Aiguille selon l'état : pas connecté → connexion ; connecté sans espace → onboarding ; sinon → app.
+async function majSession(session){
+  utilisateur = session?.user || null;
+  if(!utilisateur){ groupeId = null; clearInterval(pollTimer); afficherConnexion(); return; }
+  const { data, error } = await sb.from("membres").select("groupe_id").limit(1);
+  if(error){ console.error(error); }
+  if(data && data.length){ groupeId = data[0].groupe_id; demarrerApp(); }
+  else { afficherOnboarding(); }
+}
+
+function demarrerApp(){
+  document.getElementById("gate").classList.remove("open");
+  majEntete();
+  charger();
+  clearInterval(pollTimer);
+  pollTimer = setInterval(charger, 20000);
+}
+
+async function majEntete(){
+  const { data } = await sb.from("groupes").select("nom,code").eq("id", groupeId).single();
+  const el = document.getElementById("sousTitre");
+  if(data){
+    el.innerHTML = `Espace « ${echap(data.nom||"sans nom")} » · code d'invitation <b id="codeInvit" style="cursor:pointer;color:var(--accent)" title="Copier le code">${echap(data.code)}</b>`;
+    const c = document.getElementById("codeInvit");
+    if(c) c.onclick = ()=>{ navigator.clipboard?.writeText(data.code); toast("Code copié : "+data.code); };
+  }
+}
+
+/* ─────────────────────────── Connexion / espaces ─────────────────────────── */
+function afficherConnexion(){
+  const g = document.getElementById("gate");
+  g.innerHTML = `<div class="gate-card">
+    <h1>Chez nous</h1>
+    <p>Connecte-toi pour accéder à ton espace. Tu recevras un lien de connexion par e-mail — pas de mot de passe à retenir.</p>
+    <div class="field"><input id="g_email" type="email" placeholder="ton@email.com" autocomplete="email" /></div>
+    <button class="btn btn-primary" id="g_envoyer">Recevoir le lien de connexion</button>
+    <div class="gate-msg" id="g_msg"></div>
+  </div>`;
+  g.classList.add("open");
+  document.getElementById("g_envoyer").onclick = envoyerLien;
+  document.getElementById("g_email").addEventListener("keydown", e=>{ if(e.key==="Enter") envoyerLien(); });
+}
+async function envoyerLien(){
+  const email = document.getElementById("g_email").value.trim();
+  const msg = document.getElementById("g_msg");
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ gmsg(msg,"Adresse e-mail invalide.","err"); return; }
+  const btn = document.getElementById("g_envoyer"); btn.disabled = true;
+  const { error } = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: location.href.split("#")[0] } });
+  btn.disabled = false;
+  if(error){ gmsg(msg,"Envoi impossible : "+error.message,"err"); return; }
+  gmsg(msg,"Lien envoyé ! Ouvre ta boîte mail (pense aux spams), clique le lien, et tu reviens ici connecté.","ok");
+}
+
+function afficherOnboarding(){
+  const g = document.getElementById("gate");
+  g.innerHTML = `<div class="gate-card">
+    <h1>Bienvenue 👋</h1>
+    <p>Crée ton espace, ou rejoins celui d'un proche avec son code d'invitation.</p>
+    <div class="field"><label>Créer un nouvel espace</label>
+      <input id="g_nom" type="text" placeholder="ex : Recherche appart Julie" /></div>
+    <button class="btn btn-primary" id="g_creer">Créer mon espace</button>
+    <div class="gate-sep">ou</div>
+    <div class="field"><label>Rejoindre avec un code</label>
+      <input id="g_code" type="text" placeholder="ex : ANTONIN" /></div>
+    <button class="btn btn-ghost" id="g_rejoindre">Rejoindre l'espace</button>
+    <div class="gate-msg" id="g_msg2"></div>
+    <button class="linkbtn" id="g_logout">Se déconnecter</button>
+  </div>`;
+  g.classList.add("open");
+  document.getElementById("g_creer").onclick     = creerEspace;
+  document.getElementById("g_rejoindre").onclick = rejoindreEspace;
+  document.getElementById("g_logout").onclick    = deconnexion;
+}
+async function creerEspace(){
+  const nom = document.getElementById("g_nom").value.trim() || "Mon espace";
+  const msg = document.getElementById("g_msg2");
+  const { error } = await sb.rpc("creer_espace", { nom_espace: nom });
+  if(error){ gmsg(msg,"Erreur : "+error.message,"err"); return; }
+  relancer();
+}
+async function rejoindreEspace(){
+  const code = document.getElementById("g_code").value.trim();
+  const msg = document.getElementById("g_msg2");
+  if(!code){ gmsg(msg,"Entre un code d'invitation.","err"); return; }
+  const { error } = await sb.rpc("rejoindre_espace", { code_espace: code });
+  if(error){ gmsg(msg, /introuvable/.test(error.message) ? "Code introuvable." : "Erreur : "+error.message, "err"); return; }
+  relancer();
+}
+async function deconnexion(){ await sb.auth.signOut(); }
+async function relancer(){ const { data:{ session } } = await sb.auth.getSession(); majSession(session); }
+function gmsg(el, txt, type){ el.textContent = txt; el.className = "gate-msg "+type; }
+
+/* ─────────────────────────── Données ─────────────────────────── */
+async function charger(){
+  if(!sb || !groupeId) return;
+  const { data, error } = await sb.from("annonces").select("*").eq("groupe_id", groupeId).order("created_at",{ascending:false});
+  if(error){ console.error(error); toast("Connexion à la base impossible"); return; }
+  annonces = data || [];
+  rendre();
+}
+
+async function enregistrer(){
+  const id = val("f_id");
+  const parking = val("f_parking");
+  const payload = {
+    localisation: val("f_lieu").trim() || null,
+    lien:         val("f_lien").trim() || null,
+    photo:        val("f_photo").trim() || null,
+    groupe_id:    groupeId,
+    prix:         num("f_prix"),
+    surface:      num("f_surface"),
+    pieces:       num("f_pieces"),
+    balcon:       document.getElementById("f_balcon").checked,
+    parking:      parking,
+    parking_prix: parking==="Oui, payant" ? num("f_parking_prix") : null,
+    statut:       val("f_statut"),
+    commentaire:  val("f_commentaire").trim() || null,
+  };
+  if(!payload.localisation && !payload.lien){ toast("Ajoute au moins un lieu ou un lien"); return; }
+  if(payload.lien && estDoublon(payload.lien, id)){
+    msgAnalyse("Appartement déjà ajouté (ce lien existe déjà).", "err");
+    return;
+  }
+
+  let error;
+  if(id){ ({ error } = await sb.from("annonces").update(payload).eq("id",id)); }
+  else  { ({ error } = await sb.from("annonces").insert(payload)); }
+
+  if(error){ console.error(error); toast("Enregistrement impossible"); return; }
+  fermerModale();
+  toast(id ? "Annonce mise à jour" : "Annonce ajoutée");
+  charger();
+}
+
+// Compare les liens (en ignorant www, slash final, ancre et paramètres de tracking).
+function normaliseLien(u){
+  try{
+    const x = new URL(u.trim());
+    x.hash = "";
+    x.host = x.host.replace(/^www\./,"");
+    const drop = [];
+    x.searchParams.forEach((_,k)=>{ if(/^utm_/i.test(k) || ["xtor","cmpid","gclid","fbclid","mtm_campaign"].includes(k.toLowerCase())) drop.push(k); });
+    drop.forEach(k=>x.searchParams.delete(k));
+    return x.toString().toLowerCase().replace(/\/$/,"");
+  }catch(_){ return (u||"").trim().toLowerCase().replace(/\/$/,""); }
+}
+function estDoublon(lien, idCourant){
+  if(!lien) return false;
+  const n = normaliseLien(lien);
+  return annonces.some(a => a.id!==idCourant && a.lien && normaliseLien(a.lien)===n);
+}
+
+async function changerStatut(id, statut){
+  const { error } = await sb.from("annonces").update({statut}).eq("id",id);
+  if(error){ toast("Mise à jour impossible"); return; }
+  const a = annonces.find(x=>x.id===id); if(a) a.statut = statut;
+  rendre();
+}
+
+async function supprimer(id){
+  const a = annonces.find(x=>x.id===id);
+  const nom = a?.localisation || "cette annonce";
+  if(!confirm(`Supprimer « ${nom} » ? Cette action est définitive.`)) return;
+  const { error } = await sb.from("annonces").delete().eq("id",id);
+  if(error){ toast("Suppression impossible"); return; }
+  toast("Annonce supprimée");
+  charger();
+}
+
+/* ─────────────────────────── Rendu ─────────────────────────── */
+function rendre(){
+  rendrePipeline();
+  const contenu = document.getElementById("contenu");
+
+  if(annonces.length === 0){
+    contenu.innerHTML = `<div class="empty">
+      <h2>Aucune annonce pour l'instant</h2>
+      <p>Ajoute la première dès que tu tombes sur un bien intéressant.</p>
+      <button class="btn btn-primary" onclick="ouvrirModale()">Ajouter une annonce</button>
+    </div>`;
+    return;
+  }
+
+  let liste = annonces.slice();
+  if(filtre !== "all") liste = liste.filter(a => (a.statut||"À contacter") === filtre);
+  const q = state.recherche.trim().toLowerCase();
+  if(q) liste = liste.filter(a => (a.localisation||"").toLowerCase().includes(q));
+  liste.sort(trierPar(state.tri));
+
+  if(liste.length === 0){
+    contenu.innerHTML = `<div class="empty"><h2>Rien ici</h2><p>Aucune annonce ne correspond à ce filtre.</p></div>`;
+    return;
+  }
+  contenu.innerHTML = `<div class="grid">${liste.map(carte).join("")}</div>`;
+}
+
+function carte(a){
+  const s = metaStatut(a.statut);
+  const lieu = echap(a.localisation) || "Sans lieu";
+  const prix = a.prix != null ? `${fmt(a.prix)} <small>€/mois</small>` : `<small style="font-size:15px">Prix non renseigné</small>`;
+  const ligne1 = [];
+  if(a.surface != null) ligne1.push(`<span><b>${fmt(a.surface)}</b> m²</span>`);
+  if(a.pieces  != null) ligne1.push(`<span><b>${a.pieces}</b> ${a.pieces>1?"pièces":"pièce"}</span>`);
+  const balcon = a.balcon ? `<span class="tag on">✓ Balcon / terrasse</span>` : `<span class="tag">Pas de balcon</span>`;
+  const parking =
+      a.parking === "Oui"          ? `<span class="tag on">✓ Parking</span>` :
+      a.parking === "Oui, payant"  ? `<span class="tag">Parking payant${a.parking_prix!=null?` · ${fmt(a.parking_prix)} €`:""}</span>` :
+      a.parking === "Non"          ? `<span class="tag">Pas de parking</span>` :
+                                     `<span class="tag faint">Parking à déterminer</span>`;
+
+  const options = STATUTS.map(o=>`<option value="${o.key}" ${o.key===a.statut?"selected":""}>${o.key}</option>`).join("");
+  const photo = a.photo ? `<img class="card-photo" src="${encodeURI(a.photo)}" alt="" loading="lazy" onerror="this.remove()">` : "";
+
+  return `<article class="card">
+    ${photo}
+    <div class="card-head">
+      <div class="lieu">${lieu}</div>
+      <span class="badge" style="background:${s.bg};color:${s.color}">${s.key}</span>
+    </div>
+    <div class="prix">${prix}</div>
+    ${ligne1.length ? `<div class="meta">${ligne1.join("")}</div>` : ""}
+    <div class="meta meta-amenities">${balcon}${parking}</div>
+    ${a.commentaire ? `<div class="comment">${echap(a.commentaire)}</div>` : ""}
+    <div class="card-foot">
+      ${a.lien ? `<a class="lien-annonce" href="${encodeURI(a.lien)}" target="_blank" rel="noopener">Voir l'annonce
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6M10 14 21 3"/></svg></a>`
+       : `<span class="lien-annonce" style="color:var(--muted-soft)">Pas de lien</span>`}
+      <select class="statut-quick" title="Changer le statut" onchange="changerStatut('${a.id}', this.value)">${options}</select>
+      <button class="icon-btn" title="Éditer" onclick='ouvrirModale(${JSON.stringify(a).replace(/'/g,"&#39;")})'>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      </button>
+      <button class="icon-btn del" title="Supprimer" onclick="supprimer('${a.id}')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+      </button>
+    </div>
+  </article>`;
+}
+
+function rendrePipeline(){
+  const total = annonces.length;
+  const compte = k => annonces.filter(a => (a.statut||"À contacter")===k).length;
+  const chips = [`<button class="chip ${filtre==="all"?"on":""}" onclick="setFiltre('all')">
+      Toutes <span class="n">${total}</span></button>`];
+  STATUTS.forEach(s=>{
+    const n = compte(s.key);
+    if(n===0 && filtre!==s.key) return; // n'affiche que les statuts utilisés
+    chips.push(`<button class="chip ${filtre===s.key?"on":""}" onclick="setFiltre('${s.key}')">
+      <span class="dot" style="background:${s.dot}"></span>${s.key} <span class="n">${n}</span></button>`);
+  });
+  document.getElementById("pipeline").innerHTML = chips.join("");
+}
+
+function trierPar(t){
+  const p = a => a.prix ?? Infinity, s = a => a.surface ?? -1;
+  return {
+    recent:      (a,b)=> new Date(b.created_at) - new Date(a.created_at),
+    prix_asc:    (a,b)=> p(a)-p(b),
+    prix_desc:   (a,b)=> (b.prix??-1)-(a.prix??-1),
+    surface_desc:(a,b)=> s(b)-s(a),
+    lieu:        (a,b)=> (a.localisation||"").localeCompare(b.localisation||"","fr"),
+  }[t];
+}
+
+/* ─────────────────────────── Modale ─────────────────────────── */
+function ouvrirModale(a){
+  document.getElementById("modalTitre").textContent = a ? "Modifier l'annonce" : "Nouvelle annonce";
+  set("f_id", a?.id ?? "");
+  set("f_lieu", a?.localisation ?? "");
+  set("f_lien", a?.lien ?? "");
+  set("f_photo", a?.photo ?? "");
+  set("f_prix", a?.prix ?? "");
+  set("f_surface", a?.surface ?? "");
+  set("f_pieces", a?.pieces ?? "");
+  set("f_statut", a?.statut ?? STATUTS[0].key);
+  set("f_parking", a?.parking ?? "À déterminer");
+  set("f_parking_prix", a?.parking_prix ?? "");
+  set("f_commentaire", a?.commentaire ?? "");
+  document.getElementById("f_balcon").checked = !!a?.balcon;
+  majParkingPrix();
+  msgAnalyse("");
+  resetEtoiles();
+  document.getElementById("overlay").classList.add("open");
+  setTimeout(()=>document.getElementById("f_lieu").focus(), 60);
+}
+function fermerModale(){ document.getElementById("overlay").classList.remove("open"); }
+
+/* ─────────────────────────── Divers ─────────────────────────── */
+function setFiltre(f){ filtre = f; rendre(); }
+function remplirSelectStatut(){
+  document.getElementById("f_statut").innerHTML = STATUTS.map(s=>`<option value="${s.key}">${s.key}</option>`).join("");
+}
+function majParkingPrix(){
+  document.getElementById("parkingPrixField").style.display = val("f_parking")==="Oui, payant" ? "" : "none";
+}
+function brancherEvenements(){
+  document.getElementById("btnAdd").onclick    = ()=>ouvrirModale();
+  document.getElementById("btnSave").onclick   = enregistrer;
+  document.getElementById("btnCancel").onclick = fermerModale;
+  document.getElementById("btnRefresh").onclick= charger;
+  document.getElementById("btnLogout").onclick = deconnexion;
+  document.getElementById("btnAnalyse").onclick= analyser;
+  document.getElementById("f_parking").onchange = majParkingPrix;
+  document.getElementById("f_lien").onblur = ()=>{
+    if(estDoublon(val("f_lien"), val("f_id"))) msgAnalyse("Appartement déjà ajouté (ce lien existe déjà).", "err");
+  };
+  document.getElementById("overlay").onclick   = e => { if(e.target.id==="overlay") fermerModale(); };
+  document.getElementById("tri").onchange      = e => { state.tri = e.target.value; rendre(); };
+  document.getElementById("recherche").oninput = e => { state.recherche = e.target.value; rendre(); };
+  document.addEventListener("keydown", e => { if(e.key==="Escape") fermerModale(); });
+}
+function afficherSetup(){
+  document.getElementById("contenu").innerHTML = `<div class="setup">
+    <h2>Presque prêt 👋</h2>
+    <p>Il reste à connecter la base de données (une seule fois).</p>
+    <ol>
+      <li>Ouvre ton projet <b>Supabase</b> → <code>Project Settings</code> → <code>API Keys</code>.</li>
+      <li>Copie l'<b>URL du projet</b> et la clé <b>anon public</b>.</li>
+      <li>Colle-les en haut du fichier <code>index.html</code> (bloc CONFIGURATION), puis pousse sur GitHub.</li>
+    </ol>
+  </div>`;
+  document.getElementById("pipeline").style.display = "none";
+  document.querySelector(".tools").style.display = "none";
+}
+
+/* ─────────────────────────── Analyse d'un lien ─────────────────────────── */
+async function analyser(){
+  const url = val("f_lien").trim();
+  const btn = document.getElementById("btnAnalyse");
+  msgAnalyse("");
+  resetEtoiles();
+  if(!/^https?:\/\//i.test(url)){ msgAnalyse("Colle d'abord un lien valide.", "err"); return; }
+
+  btn.classList.add("loading"); btn.disabled = true;
+  try{
+    const html = await recupererHtml(url);
+    const info = extraireInfos(html);
+    const trouve = info.prix!=null || info.surface!=null || info.pieces!=null || info.localisation || info.balcon;
+    if(!trouve) throw new Error("rien-trouvé");
+
+    if(info.localisation) set("f_lieu", info.localisation);
+    if(info.photo) set("f_photo", info.photo);
+    if(info.prix    != null) set("f_prix", info.prix);
+    if(info.surface != null) set("f_surface", info.surface);
+    if(info.pieces  != null) set("f_pieces", info.pieces);
+    document.getElementById("f_balcon").checked = !!info.balcon;
+
+    if(estDoublon(url, val("f_id"))){ msgAnalyse("Appartement déjà ajouté (ce lien existe déjà).", "err"); return; }
+    const manquants =
+      etoile("f_lieu",    !info.localisation) +
+      etoile("f_prix",    info.prix==null) +
+      etoile("f_surface", info.surface==null) +
+      etoile("f_pieces",  info.pieces==null);
+    msgAnalyse(manquants
+      ? "Pré-rempli. Les champs avec ★ n'ont pas été trouvés, complète-les."
+      : "Champs pré-remplis — vérifie et corrige avant d'enregistrer.", "ok");
+  }catch(e){
+    console.error("analyse:", e);
+    msgAnalyse("Impossible de lire l'URL, remplis les infos à la main.", "err");
+  }finally{
+    btn.classList.remove("loading"); btn.disabled = false;
+  }
+}
+
+// Récupère le HTML de la page via un relais public (contourne le CORS). Best-effort.
+async function recupererHtml(url){
+  const relais = [
+    u => ({ url:`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`, json:true }),
+    u => ({ url:`https://corsproxy.io/?url=${encodeURIComponent(u)}`,          json:false }),
+  ];
+  for(const faire of relais){
+    try{
+      const { url:proxyUrl, json } = faire(url);
+      const r = await fetch(proxyUrl);
+      if(!r.ok) continue;
+      const contenu = json ? (await r.json()).contents : await r.text();
+      if(contenu && contenu.length > 400) return contenu;
+    }catch(_){ /* on tente le relais suivant */ }
+  }
+  throw new Error("relais-indisponible");
+}
+
+// Extrait prix / surface / pièces / balcon / localisation d'une page d'annonce.
+function extraireInfos(html){
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const out = { prix:null, surface:null, pieces:null, balcon:false, localisation:null, photo:null };
+
+  // 1) Données structurées JSON-LD (le plus fiable quand présent)
+  doc.querySelectorAll('script[type="application/ld+json"]').forEach(s=>{
+    try{
+      const arr = [].concat(JSON.parse(s.textContent));
+      arr.forEach(d=>{
+        const prix = d?.offers?.price ?? d?.price ?? d?.offers?.priceSpecification?.price;
+        if(prix!=null && out.prix==null){ const n = parseInt(String(prix).replace(/[^\d]/g,""),10); if(n) out.prix=n; }
+        const loc = d?.address?.addressLocality || d?.address?.addressRegion;
+        if(loc && !out.localisation) out.localisation = String(loc).trim();
+      });
+    }catch(_){}
+  });
+
+  // 2) Titre + description (og / meta) + corps de page
+  const meta = n => doc.querySelector(`meta[property="${n}"],meta[name="${n}"]`)?.getAttribute("content") || "";
+  const titre = meta("og:title") || doc.title || "";
+  const desc  = meta("og:description") || meta("description") || "";
+  out.photo = meta("og:image") || meta("og:image:secure_url") || null;
+  const corps = (doc.body?.textContent || "").slice(0, 20000);
+  const blob  = `${titre}\n${desc}\n${corps}`;
+
+  // 3) Heuristiques (repli)
+  if(out.prix==null){
+    const m = blob.match(/(\d[\d \u00a0.]{2,7}\d)\s*€/);
+    if(m){ const n = parseInt(m[1].replace(/[^\d]/g,""),10); if(n) out.prix = n; }
+  }
+  if(out.surface==null){
+    const m = blob.match(/(\d+(?:[.,]\d+)?)\s*m(?:²|2)\b/i);
+    if(m) out.surface = parseFloat(m[1].replace(",", ".")) || null;
+  }
+  if(out.pieces==null){
+    let m = blob.match(/(\d+)\s*pi[èe]ce/i);
+    if(m) out.pieces = parseInt(m[1],10);
+    else if(/\bstudio\b/i.test(blob)) out.pieces = 1;
+    else { m = titre.match(/\b[TF](\d)\b/i); if(m) out.pieces = parseInt(m[1],10); }
+  }
+  if(/balcon|terrasse/i.test(blob)) out.balcon = true;
+
+  // 4) Localisation depuis le titre (repli)
+  if(!out.localisation){
+    let m = titre.match(/([A-Za-zÀ-ÿ'’][A-Za-zÀ-ÿ'’\- ]+?)\s*\(?\d{5}\)?(?:\s*\(\d{2}\))?$/) ||
+            titre.match(/(?:à|sur)\s+([A-Za-zÀ-ÿ'’\- ]{2,40})/);
+    if(m){
+      out.localisation = m[1].replace(/^(location|vente|appartement|maison|studio|à louer|à vendre)\s+/i,"").trim();
+      if(out.localisation.length < 2) out.localisation = null;
+    }
+  }
+  return out;
+}
+function msgAnalyse(txt, type){
+  const el = document.getElementById("analyseMsg");
+  el.textContent = txt || "";
+  el.className = "analyse-msg" + (type ? " "+type : "");
+}
+// Affiche/masque l'étoile rouge d'un champ. Renvoie 1 si manquant (pour compter).
+function etoile(fieldId, manquant){
+  const el = document.getElementById("star_"+fieldId);
+  if(el) el.style.display = manquant ? "inline" : "none";
+  return manquant ? 1 : 0;
+}
+function resetEtoiles(){ ["f_lieu","f_prix","f_surface","f_pieces"].forEach(id=>etoile(id,false)); }
+
+/* helpers */
+function val(id){ return document.getElementById(id).value; }
+function set(id,v){ document.getElementById(id).value = v; }
+function num(id){ const v = val(id); return v===""||v==null ? null : Number(v); }
+function fmt(n){ return new Intl.NumberFormat("fr-FR").format(n); }
+function echap(s){ return s==null ? "" : String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+let toastT;
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastT); toastT = setTimeout(()=>t.classList.remove("show"), 2400);
+}
+</script>
+</body>
+</html>
