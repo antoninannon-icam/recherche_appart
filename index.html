@@ -199,6 +199,7 @@
   .analyse-msg.ok{color:#15803d}
   .analyse-msg.err{color:var(--danger)}
   .etoile{color:var(--danger);font-weight:700;margin-left:4px;display:none}
+  .field input.champ-manquant{background:#fdecec;border-color:#e2908b}
 
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--ink);color:#fff;font-size:13.5px;font-weight:500;padding:10px 18px;border-radius:999px;box-shadow:var(--shadow-lift);transition:opacity .2s,transform .2s;pointer-events:none;z-index:60}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -238,6 +239,9 @@
       <span class="sub" id="sousTitre">Suivi de nos annonces</span>
     </div>
     <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost" id="btnPwd" title="Modifier le mot de passe de l'espace">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="10.5" width="16" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>
+      </button>
       <button class="btn btn-ghost" id="btnLogout" title="Se déconnecter">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg>
       </button>
@@ -343,6 +347,22 @@
   </div>
 </div>
 
+<div class="overlay" id="pwdOverlay">
+  <div class="modal" style="max-width:400px" role="dialog" aria-modal="true">
+    <h2>Modifier le mot de passe</h2>
+    <p style="color:var(--muted);font-size:13.5px;margin:-8px 0 16px;line-height:1.5">Nouveau mot de passe de l'espace « <span id="p_espace"></span> ». Pense à le communiquer aux personnes qui partagent cet espace.</p>
+    <div class="field"><label for="p_new">Nouveau mot de passe</label>
+      <input id="p_new" type="password" autocomplete="new-password" placeholder="au moins 6 caractères" /></div>
+    <div class="field"><label for="p_new2">Confirmer</label>
+      <input id="p_new2" type="password" autocomplete="new-password" placeholder="retape le mot de passe" /></div>
+    <div class="analyse-msg" id="p_msg"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="p_cancel">Annuler</button>
+      <button class="btn btn-primary" id="p_save">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -364,7 +384,9 @@ let sb = null;
 let annonces = [];
 let filtre = "all";
 let utilisateur = null;
-let groupeId = null;
+let espaceSlug = null;
+const EMAIL_DOMAINE = "@espace.app";
+function slug(nom){ return (nom||"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,40); }
 let pollTimer = null;
 const state = { tri:"recent", recherche:"" };
 
@@ -384,11 +406,9 @@ window.addEventListener("DOMContentLoaded", async () => {
 // Aiguille selon l'état : pas connecté → connexion ; connecté sans espace → onboarding ; sinon → app.
 async function majSession(session){
   utilisateur = session?.user || null;
-  if(!utilisateur){ groupeId = null; clearInterval(pollTimer); afficherConnexion(); return; }
-  const { data, error } = await sb.from("membres").select("groupe_id").limit(1);
-  if(error){ console.error(error); }
-  if(data && data.length){ groupeId = data[0].groupe_id; demarrerApp(); }
-  else { afficherOnboarding(); }
+  if(!utilisateur){ espaceSlug = null; clearInterval(pollTimer); afficherConnexion(); return; }
+  espaceSlug = (utilisateur.email || "").split("@")[0];
+  demarrerApp();
 }
 
 function demarrerApp(){
@@ -399,84 +419,99 @@ function demarrerApp(){
   pollTimer = setInterval(charger, 20000);
 }
 
-async function majEntete(){
-  const { data } = await sb.from("groupes").select("nom,code").eq("id", groupeId).single();
-  const el = document.getElementById("sousTitre");
-  if(data){
-    el.innerHTML = `Espace « ${echap(data.nom||"sans nom")} » · code d'invitation <b id="codeInvit" style="cursor:pointer;color:var(--accent)" title="Copier le code">${echap(data.code)}</b>`;
-    const c = document.getElementById("codeInvit");
-    if(c) c.onclick = ()=>{ navigator.clipboard?.writeText(data.code); toast("Code copié : "+data.code); };
-  }
+function majEntete(){
+  const nom = utilisateur?.user_metadata?.nom || espaceSlug || "";
+  document.getElementById("sousTitre").textContent = `Espace « ${nom} »`;
 }
 
-/* ─────────────────────────── Connexion / espaces ─────────────────────────── */
+/* ─────────────────────────── Connexion par espace ─────────────────────────── */
 function afficherConnexion(){
   const g = document.getElementById("gate");
   g.innerHTML = `<div class="gate-card">
     <h1>Chez nous</h1>
-    <p>Connecte-toi pour accéder à ton espace. Tu recevras un lien de connexion par e-mail — pas de mot de passe à retenir.</p>
-    <div class="field"><input id="g_email" type="email" placeholder="ton@email.com" autocomplete="email" /></div>
-    <button class="btn btn-primary" id="g_envoyer">Recevoir le lien de connexion</button>
+    <p>Entre le nom de ton espace et son mot de passe. Ce sont les deux seules infos à partager avec les personnes qui doivent y accéder.</p>
+    <div class="field"><label>Nom de l'espace</label>
+      <input id="g_nom" type="text" placeholder="ex : antonin" autocomplete="off" autocapitalize="none" /></div>
+    <div class="field"><label>Mot de passe</label>
+      <input id="g_mdp" type="password" placeholder="mot de passe de l'espace" autocomplete="current-password" /></div>
+    <button class="btn btn-primary" id="g_entrer">Entrer</button>
+    <div class="gate-sep">ou</div>
+    <button class="btn btn-ghost" id="g_creer">Créer un nouvel espace</button>
     <div class="gate-msg" id="g_msg"></div>
   </div>`;
   g.classList.add("open");
-  document.getElementById("g_envoyer").onclick = envoyerLien;
-  document.getElementById("g_email").addEventListener("keydown", e=>{ if(e.key==="Enter") envoyerLien(); });
+  document.getElementById("g_entrer").onclick = entrerEspace;
+  document.getElementById("g_creer").onclick  = afficherCreation;
+  document.getElementById("g_mdp").addEventListener("keydown", e=>{ if(e.key==="Enter") entrerEspace(); });
 }
-async function envoyerLien(){
-  const email = document.getElementById("g_email").value.trim();
-  const msg = document.getElementById("g_msg");
-  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ gmsg(msg,"Adresse e-mail invalide.","err"); return; }
-  const btn = document.getElementById("g_envoyer"); btn.disabled = true;
-  const { error } = await sb.auth.signInWithOtp({ email, options:{ emailRedirectTo: location.href.split("#")[0] } });
-  btn.disabled = false;
-  if(error){ gmsg(msg,"Envoi impossible : "+error.message,"err"); return; }
-  gmsg(msg,"Lien envoyé ! Ouvre ta boîte mail (pense aux spams), clique le lien, et tu reviens ici connecté.","ok");
-}
-
-function afficherOnboarding(){
+function afficherCreation(){
   const g = document.getElementById("gate");
   g.innerHTML = `<div class="gate-card">
-    <h1>Bienvenue 👋</h1>
-    <p>Crée ton espace, ou rejoins celui d'un proche avec son code d'invitation.</p>
-    <div class="field"><label>Créer un nouvel espace</label>
-      <input id="g_nom" type="text" placeholder="ex : Recherche appart Julie" /></div>
-    <button class="btn btn-primary" id="g_creer">Créer mon espace</button>
-    <div class="gate-sep">ou</div>
-    <div class="field"><label>Rejoindre avec un code</label>
-      <input id="g_code" type="text" placeholder="ex : ANTONIN" /></div>
-    <button class="btn btn-ghost" id="g_rejoindre">Rejoindre l'espace</button>
-    <div class="gate-msg" id="g_msg2"></div>
-    <button class="linkbtn" id="g_logout">Se déconnecter</button>
+    <h1>Créer ton espace</h1>
+    <p>Un espace, c'est votre tableau d'annonces privé et partagé. Il te faut juste deux choses :</p>
+    <p style="margin:-8px 0 18px">• <b>un nom d'espace</b> — c'est ton identifiant pour te connecter. Choisis-le simple et <b>retiens-le bien</b>.<br>• <b>un mot de passe</b> — au moins 6 caractères.</p>
+    <div class="field"><label>Nom de l'espace</label>
+      <input id="g_nom" type="text" placeholder="ex : antonin" autocomplete="off" autocapitalize="none" /></div>
+    <div class="field"><label>Mot de passe</label>
+      <input id="g_mdp" type="password" placeholder="au moins 6 caractères" autocomplete="new-password" /></div>
+    <button class="btn btn-primary" id="g_creer2">Créer l'espace</button>
+    <p style="color:var(--muted);font-size:13px;margin-top:16px;line-height:1.5">Pour que ta copine ou un proche accède au <b>même</b> espace, donne-lui simplement <b>ce nom et ce mot de passe</b> : il cliquera « Entrer » avec, et vous partagerez les mêmes annonces.</p>
+    <div class="gate-msg" id="g_msg"></div>
+    <button class="linkbtn" id="g_retour">← Retour à la connexion</button>
   </div>`;
   g.classList.add("open");
-  document.getElementById("g_creer").onclick     = creerEspace;
-  document.getElementById("g_rejoindre").onclick = rejoindreEspace;
-  document.getElementById("g_logout").onclick    = deconnexion;
+  document.getElementById("g_creer2").onclick = creerEspace;
+  document.getElementById("g_retour").onclick = afficherConnexion;
+}
+function lireIdentifiants(){
+  return {
+    s:   slug(document.getElementById("g_nom").value),
+    mdp: document.getElementById("g_mdp").value,
+    msg: document.getElementById("g_msg"),
+  };
+}
+async function entrerEspace(){
+  const { s, mdp, msg } = lireIdentifiants();
+  if(!s){ gmsg(msg,"Entre le nom de ton espace.","err"); return; }
+  if(mdp.length < 6){ gmsg(msg,"Mot de passe : au moins 6 caractères.","err"); return; }
+  const { error } = await sb.auth.signInWithPassword({ email: s+EMAIL_DOMAINE, password: mdp });
+  if(error){ gmsg(msg,"Nom d'espace ou mot de passe incorrect.","err"); return; }
 }
 async function creerEspace(){
-  const nom = document.getElementById("g_nom").value.trim() || "Mon espace";
-  const msg = document.getElementById("g_msg2");
-  const { error } = await sb.rpc("creer_espace", { nom_espace: nom });
-  if(error){ gmsg(msg,"Erreur : "+error.message,"err"); return; }
-  relancer();
-}
-async function rejoindreEspace(){
-  const code = document.getElementById("g_code").value.trim();
-  const msg = document.getElementById("g_msg2");
-  if(!code){ gmsg(msg,"Entre un code d'invitation.","err"); return; }
-  const { error } = await sb.rpc("rejoindre_espace", { code_espace: code });
-  if(error){ gmsg(msg, /introuvable/.test(error.message) ? "Code introuvable." : "Erreur : "+error.message, "err"); return; }
-  relancer();
+  const { s, mdp, msg } = lireIdentifiants();
+  const nom = document.getElementById("g_nom").value.trim();
+  if(!s){ gmsg(msg,"Choisis un nom pour ton espace.","err"); return; }
+  if(mdp.length < 6){ gmsg(msg,"Mot de passe : au moins 6 caractères.","err"); return; }
+  const { data, error } = await sb.auth.signUp({ email: s+EMAIL_DOMAINE, password: mdp, options:{ data:{ nom } } });
+  if(error){ gmsg(msg, /already|exist|regist/i.test(error.message) ? "Cet espace existe déjà — reviens à la connexion et clique « Entrer »." : "Erreur : "+error.message, "err"); return; }
+  if(!data.session){ gmsg(msg,"Espace créé — reviens à la connexion et clique « Entrer ».","ok"); }
 }
 async function deconnexion(){ await sb.auth.signOut(); }
-async function relancer(){ const { data:{ session } } = await sb.auth.getSession(); majSession(session); }
 function gmsg(el, txt, type){ el.textContent = txt; el.className = "gate-msg "+type; }
+
+/* ─────────────────────────── Mot de passe de l'espace ─────────────────────────── */
+function ouvrirPwd(){
+  document.getElementById("p_espace").textContent = utilisateur?.user_metadata?.nom || espaceSlug || "";
+  set("p_new",""); set("p_new2","");
+  msgEl("p_msg","");
+  document.getElementById("pwdOverlay").classList.add("open");
+  setTimeout(()=>document.getElementById("p_new").focus(), 60);
+}
+function fermerPwd(){ document.getElementById("pwdOverlay").classList.remove("open"); }
+async function enregistrerPwd(){
+  const a = val("p_new"), b = val("p_new2");
+  if(a.length < 6){ msgEl("p_msg","Au moins 6 caractères.","err"); return; }
+  if(a !== b){ msgEl("p_msg","Les deux mots de passe ne correspondent pas.","err"); return; }
+  const { error } = await sb.auth.updateUser({ password: a });
+  if(error){ msgEl("p_msg","Erreur : "+error.message,"err"); return; }
+  fermerPwd(); toast("Mot de passe modifié");
+}
+function msgEl(id, txt, type){ const el = document.getElementById(id); el.textContent = txt||""; el.className = "analyse-msg" + (type ? " "+type : ""); }
 
 /* ─────────────────────────── Données ─────────────────────────── */
 async function charger(){
-  if(!sb || !groupeId) return;
-  const { data, error } = await sb.from("annonces").select("*").eq("groupe_id", groupeId).order("created_at",{ascending:false});
+  if(!sb || !espaceSlug) return;
+  const { data, error } = await sb.from("annonces").select("*").eq("espace", espaceSlug).order("created_at",{ascending:false});
   if(error){ console.error(error); toast("Connexion à la base impossible"); return; }
   annonces = data || [];
   rendre();
@@ -489,7 +524,7 @@ async function enregistrer(){
     localisation: val("f_lieu").trim() || null,
     lien:         val("f_lien").trim() || null,
     photo:        val("f_photo").trim() || null,
-    groupe_id:    groupeId,
+    espace:       espaceSlug,
     prix:         num("f_prix"),
     surface:      num("f_surface"),
     pieces:       num("f_pieces"),
@@ -509,7 +544,12 @@ async function enregistrer(){
   if(id){ ({ error } = await sb.from("annonces").update(payload).eq("id",id)); }
   else  { ({ error } = await sb.from("annonces").insert(payload)); }
 
-  if(error){ console.error(error); toast("Enregistrement impossible"); return; }
+  if(error){
+    console.error(error);
+    if(error.code === "23505"){ msgAnalyse("Appartement déjà ajouté (ce lien existe déjà).", "err"); }
+    else toast("Enregistrement impossible");
+    return;
+  }
   fermerModale();
   toast(id ? "Annonce mise à jour" : "Annonce ajoutée");
   charger();
@@ -681,6 +721,10 @@ function brancherEvenements(){
   document.getElementById("btnCancel").onclick = fermerModale;
   document.getElementById("btnRefresh").onclick= charger;
   document.getElementById("btnLogout").onclick = deconnexion;
+  document.getElementById("btnPwd").onclick    = ouvrirPwd;
+  document.getElementById("p_save").onclick    = enregistrerPwd;
+  document.getElementById("p_cancel").onclick  = fermerPwd;
+  document.getElementById("pwdOverlay").onclick= e => { if(e.target.id==="pwdOverlay") fermerPwd(); };
   document.getElementById("btnAnalyse").onclick= analyser;
   document.getElementById("f_parking").onchange = majParkingPrix;
   document.getElementById("f_lien").onblur = ()=>{
@@ -689,7 +733,10 @@ function brancherEvenements(){
   document.getElementById("overlay").onclick   = e => { if(e.target.id==="overlay") fermerModale(); };
   document.getElementById("tri").onchange      = e => { state.tri = e.target.value; rendre(); };
   document.getElementById("recherche").oninput = e => { state.recherche = e.target.value; rendre(); };
-  document.addEventListener("keydown", e => { if(e.key==="Escape") fermerModale(); });
+  ["f_lieu","f_prix","f_surface","f_pieces"].forEach(id=>{
+    document.getElementById(id).addEventListener("input", ()=>etoile(id,false));
+  });
+  document.addEventListener("keydown", e => { if(e.key==="Escape"){ fermerModale(); fermerPwd(); } });
 }
 function afficherSetup(){
   document.getElementById("contenu").innerHTML = `<div class="setup">
@@ -821,10 +868,12 @@ function msgAnalyse(txt, type){
   el.textContent = txt || "";
   el.className = "analyse-msg" + (type ? " "+type : "");
 }
-// Affiche/masque l'étoile rouge d'un champ. Renvoie 1 si manquant (pour compter).
+// Affiche/masque l'étoile rouge + le fond rouge clair d'un champ. Renvoie 1 si manquant.
 function etoile(fieldId, manquant){
   const el = document.getElementById("star_"+fieldId);
   if(el) el.style.display = manquant ? "inline" : "none";
+  const champ = document.getElementById(fieldId);
+  if(champ) champ.classList.toggle("champ-manquant", manquant);
   return manquant ? 1 : 0;
 }
 function resetEtoiles(){ ["f_lieu","f_prix","f_surface","f_pieces"].forEach(id=>etoile(id,false)); }
