@@ -21,213 +21,297 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,500&family=Inter:wght@400;450;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
 
 <style>
   :root{
-    --bg:#ffffff;
-    --surface:#ffffff;
-    --line:#ececef;
-    --line-strong:#e0e1e4;
-    --ink:#17181a;
-    --muted:#6b7075;
-    --muted-soft:#9a9ea4;
-    --accent:#2b3a4a;
-    --accent-hover:#1f2c39;
-    --danger:#b3261e;
-    --radius-card:16px;
-    --radius-ctrl:10px;
-    --shadow:0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.05);
-    --shadow-lift:0 6px 16px rgba(16,24,40,.08), 0 2px 6px rgba(16,24,40,.05);
+    /* Palette — plâtre chaud, encre, vert « maison », chiffres en mono */
+    --paper:#f3f0e9;
+    --card:#ffffff;
+    --card-2:#faf8f3;
+    --ink:#1e1c17;
+    --muted:#726e66;
+    --faint:#a59f94;
+    --line:#e5e0d5;
+    --line-2:#d7d1c3;
+    --brand:#2e5d4c;
+    --brand-2:#244a3c;
+    --brand-tint:#e7efe9;
+    --danger:#b42318;
+    --danger-tint:#fbeceb;
+    --radius:14px;
+    --radius-sm:10px;
+    --radius-xs:8px;
+    --shadow:0 1px 2px rgba(50,42,24,.05), 0 1px 3px rgba(50,42,24,.05);
+    --shadow-lift:0 10px 26px rgba(50,42,24,.10), 0 3px 8px rgba(50,42,24,.06);
+    --shadow-modal:0 24px 60px rgba(30,28,23,.28);
+    --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --serif:"Newsreader",Georgia,"Times New Roman",serif;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{
-    background:var(--bg);
+    background:var(--paper);
     color:var(--ink);
-    font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    font-family:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     font-size:15px;
     line-height:1.5;
     -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
   }
-  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 80px}
+  .wrap{max-width:1120px;margin:0 auto;padding:30px 22px 96px}
 
-  /* ---------- Header ---------- */
-  header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px}
-  .brand{display:flex;flex-direction:column;gap:2px}
-  .brand h1{
-    font-family:"Fraunces",Georgia,serif;
-    font-style:italic;font-weight:500;
-    font-size:30px;letter-spacing:-.01em;margin:0;line-height:1;
+  /* petite étiquette technique (mono, espacée) */
+  .eyebrow{
+    font-family:var(--mono);font-size:11px;font-weight:500;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--faint);
   }
-  .brand .sub{color:var(--muted);font-size:13.5px}
+
+  /* ---------- En-tête ---------- */
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:30px}
+  .brand{display:flex;flex-direction:column;gap:3px}
+  .wordmark{display:flex;align-items:center;gap:9px}
+  .wordmark .mark{width:22px;height:22px;color:var(--brand);flex-shrink:0}
+  .wordmark .mark path{stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .wordmark span{
+    font-family:var(--serif);font-weight:500;font-size:27px;
+    letter-spacing:-.015em;line-height:1;
+  }
+  .brand .sub{color:var(--muted);font-size:13px;padding-left:31px}
+
+  .actions{display:flex;align-items:center;gap:12px}
+  .icon-group{display:flex;align-items:center;gap:2px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius-sm);padding:3px}
+  .icon-ghost{
+    background:none;border:none;border-radius:7px;padding:7px;cursor:pointer;color:var(--muted);
+    display:inline-flex;transition:background .15s,color .15s;
+  }
+  .icon-ghost:hover{background:var(--card-2);color:var(--ink)}
+  .icon-ghost svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 
   .btn{
     font:inherit;font-weight:600;font-size:14px;
-    border:1px solid transparent;border-radius:var(--radius-ctrl);
-    padding:10px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;
-    transition:background .15s ease,border-color .15s ease,transform .06s ease;
+    border:1px solid transparent;border-radius:var(--radius-sm);
+    padding:11px 17px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;
+    transition:background .15s,border-color .15s,transform .06s,box-shadow .15s;
     white-space:nowrap;
   }
   .btn:active{transform:translateY(1px)}
-  .btn-primary{background:var(--accent);color:#fff}
-  .btn-primary:hover{background:var(--accent-hover)}
-  .btn-ghost{background:#fff;border-color:var(--line-strong);color:var(--ink)}
-  .btn-ghost:hover{background:#fafafa;border-color:#d3d4d8}
-  .btn-danger{background:#fff;border-color:#e7c9c7;color:var(--danger)}
-  .btn-danger:hover{background:#fdf3f2}
-  .btn svg{width:16px;height:16px;stroke-width:2}
+  .btn:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+  .btn-primary{background:var(--brand);color:#fff}
+  .btn-primary:hover{background:var(--brand-2)}
+  .btn-ghost{background:var(--card);border-color:var(--line-2);color:var(--ink)}
+  .btn-ghost:hover{background:var(--card-2);border-color:var(--muted)}
+  .btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
-  /* ---------- Barre de suivi (statuts) ---------- */
-  .pipeline{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  /* ---------- Barre « où en est la recherche » ---------- */
+  #pipeline{margin-bottom:22px}
+  .pipe-eyebrow{
+    font-family:var(--mono);font-size:11px;font-weight:500;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:11px;
+  }
+  .pipe-bar{display:flex;gap:3px;height:9px;margin-bottom:14px}
+  .pipe-seg{border-radius:3px;min-width:8px;transition:opacity .2s;cursor:default}
+  .pipe-seg.dim{opacity:.28}
+  .pipe-legend{display:flex;gap:8px;flex-wrap:wrap}
   .chip{
     font:inherit;font-size:13px;font-weight:500;
-    border:1px solid var(--line-strong);background:#fff;color:var(--muted);
-    border-radius:999px;padding:6px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+    border:1px solid var(--line-2);background:var(--card);color:var(--muted);
+    border-radius:999px;padding:6px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;
     transition:border-color .15s,background .15s,color .15s;
   }
-  .chip:hover{border-color:#d0d1d5}
-  .chip .dot{width:8px;height:8px;border-radius:50%}
-  .chip .n{font-variant-numeric:tabular-nums;color:var(--muted-soft);font-weight:600}
-  .chip.on{color:var(--ink);border-color:var(--ink)}
-  .chip.on .n{color:var(--ink)}
+  .chip:hover{border-color:var(--muted)}
+  .chip:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+  .chip-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .chip-n{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--faint);font-variant-numeric:tabular-nums}
+  .chip.on{color:var(--ink);border-color:var(--brand);background:var(--brand-tint)}
+  .chip.on .chip-n{color:var(--brand)}
 
-  /* ---------- Barre outils ---------- */
-  .tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:20px}
-  .search{position:relative;flex:1 1 220px;min-width:180px}
+  /* ---------- Outils (recherche + tri) ---------- */
+  .tools{display:flex;gap:11px;flex-wrap:wrap;align-items:center;margin-bottom:24px}
+  .search{position:relative;flex:1 1 240px;min-width:190px}
   .search input{
     width:100%;font:inherit;font-size:14px;
-    border:1px solid var(--line-strong);border-radius:var(--radius-ctrl);
-    padding:9px 12px 9px 34px;background:#fff;color:var(--ink);
+    border:1px solid var(--line-2);border-radius:var(--radius-sm);
+    padding:10px 12px 10px 36px;background:var(--card);color:var(--ink);
+    transition:border-color .15s;
   }
-  .search input:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
-  .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--muted-soft)}
+  .search input::placeholder{color:var(--faint)}
+  .search input:focus{outline:2px solid var(--brand);outline-offset:0;border-color:transparent}
+  .search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--faint);fill:none;stroke:currentColor;stroke-width:2}
   select.sort{
-    font:inherit;font-size:14px;color:var(--ink);background:#fff;
-    border:1px solid var(--line-strong);border-radius:var(--radius-ctrl);padding:9px 12px;cursor:pointer;
+    font:inherit;font-size:14px;color:var(--ink);background:var(--card);
+    border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:10px 34px 10px 13px;cursor:pointer;
+    appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23726e66' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 11px center;
   }
-  select.sort:focus{outline:2px solid var(--accent);border-color:transparent}
+  select.sort:focus{outline:2px solid var(--brand);border-color:transparent}
 
   /* ---------- Grille de cartes ---------- */
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:18px}
   .card{
-    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-card);
-    box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:12px;
-    transition:box-shadow .18s ease,border-color .18s ease,transform .18s ease;
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;
+    transition:box-shadow .2s,border-color .2s,transform .2s;
+    animation:cardIn .45s cubic-bezier(.2,.7,.3,1) both;
   }
-  .card:hover{box-shadow:var(--shadow-lift);border-color:var(--line-strong);transform:translateY(-1px)}
-  .card-photo{width:calc(100% + 36px);height:150px;object-fit:cover;margin:-18px -18px 4px;border-radius:16px 16px 0 0;display:block;background:#f2f3f5}
-  .card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-  .lieu{font-weight:600;font-size:16px;letter-spacing:-.01em;line-height:1.25}
-  .badge{
-    font-size:12px;font-weight:600;border-radius:999px;padding:4px 10px;white-space:nowrap;flex-shrink:0;
+  @keyframes cardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .card:hover{box-shadow:var(--shadow-lift);border-color:var(--line-2);transform:translateY(-2px)}
+  .card-photo{height:158px;background:var(--card-2);display:block;position:relative}
+  .card-photo img{width:100%;height:100%;object-fit:cover;display:block}
+  .card-body{padding:17px 18px 4px;display:flex;flex-direction:column;gap:9px}
+
+  .status-line{display:flex;align-items:center;gap:7px}
+  .status-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+  .status-name{font-size:12px;font-weight:600;letter-spacing:.01em}
+
+  .lieu{font-family:var(--serif);font-weight:500;font-size:20px;letter-spacing:-.01em;line-height:1.2;margin:0}
+
+  .prix{display:flex;align-items:baseline;gap:6px}
+  .prix-val{font-family:var(--mono);font-weight:600;font-size:25px;letter-spacing:-.02em;color:var(--ink)}
+  .prix-unit{font-size:13px;color:var(--muted);font-weight:500}
+  .prix-none{font-size:14px;color:var(--faint);font-style:italic}
+
+  .specs{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:13.5px;flex-wrap:wrap}
+  .spec-n{font-family:var(--mono);font-weight:600;font-size:14px;color:var(--ink)}
+  .spec-sep{color:var(--line-2)}
+
+  .feats{display:flex;gap:7px;flex-wrap:wrap;margin-top:1px}
+  .feat{
+    display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:500;
+    border-radius:var(--radius-xs);padding:4px 9px;background:var(--card-2);color:var(--muted);border:1px solid var(--line);
   }
-  .prix{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1}
-  .prix small{font-size:13px;font-weight:500;color:var(--muted)}
-  .meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--muted);font-size:13.5px}
-  .meta b{color:var(--ink);font-weight:600}
-  .meta .yes{color:#15803d;font-weight:600}
-  .meta-amenities{gap:8px;margin-top:2px}
-  .tag{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:500;border-radius:8px;padding:4px 9px;background:#f5f6f7;color:var(--muted)}
-  .tag.on{background:#e8f6ee;color:#15803d;font-weight:600}
-  .tag.faint{color:var(--muted-soft)}
+  .feat svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+  .feat.on{background:var(--brand-tint);color:var(--brand);border-color:transparent}
+  .feat.faint{color:var(--faint)}
+
   .comment{
-    color:var(--muted);font-size:13.5px;background:#fafafb;border:1px solid var(--line);
-    border-radius:10px;padding:9px 11px;white-space:pre-wrap;word-break:break-word;
+    color:var(--muted);font-size:13.5px;line-height:1.5;margin:6px 0 2px;
+    padding-left:11px;border-left:2px solid var(--line-2);
+    white-space:pre-wrap;word-break:break-word;font-style:italic;
   }
-  .card-foot{display:flex;align-items:center;gap:8px;margin-top:2px;padding-top:12px;border-top:1px solid var(--line);flex-wrap:wrap}
-  .lien-annonce{color:var(--accent);font-weight:600;font-size:13.5px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-right:auto}
+
+  .card-foot{
+    display:flex;align-items:center;gap:8px;margin-top:auto;
+    padding:12px 16px;border-top:1px solid var(--line);flex-wrap:wrap;background:var(--card-2)
+  }
+  .lien-annonce{color:var(--brand);font-weight:600;font-size:13.5px;text-decoration:none;display:inline-flex;align-items:center;gap:5px;margin-right:auto}
   .lien-annonce:hover{text-decoration:underline}
-  .lien-annonce svg{width:13px;height:13px}
+  .lien-annonce svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .lien-annonce.off{color:var(--faint);font-weight:500;font-style:italic}
+  .foot-actions{display:flex;align-items:center;gap:6px}
   select.statut-quick{
     font:inherit;font-size:12.5px;font-weight:500;
-    border:1px solid var(--line-strong);border-radius:8px;padding:5px 7px;background:#fff;color:var(--ink);cursor:pointer;
+    border:1px solid var(--line-2);border-radius:var(--radius-xs);padding:6px 8px;background:var(--card);color:var(--ink);cursor:pointer;max-width:130px;
   }
+  select.statut-quick:focus{outline:2px solid var(--brand);border-color:transparent}
   .icon-btn{
-    background:#fff;border:1px solid var(--line-strong);border-radius:8px;padding:5px;cursor:pointer;
+    background:var(--card);border:1px solid var(--line-2);border-radius:var(--radius-xs);padding:6px;cursor:pointer;
     display:inline-flex;color:var(--muted);transition:border-color .15s,color .15s,background .15s;
   }
-  .icon-btn:hover{border-color:#d0d1d5;color:var(--ink)}
-  .icon-btn.del:hover{color:var(--danger);border-color:#e7c9c7;background:#fdf3f2}
-  .icon-btn svg{width:15px;height:15px;stroke-width:2}
+  .icon-btn:hover{border-color:var(--muted);color:var(--ink)}
+  .icon-btn.del:hover{color:var(--danger);border-color:#e2b6b2;background:var(--danger-tint)}
+  .icon-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 
-  /* ---------- États vides / message ---------- */
+  /* ---------- États vides ---------- */
   .empty{
-    text-align:center;padding:64px 20px;color:var(--muted);
-    border:1px dashed var(--line-strong);border-radius:var(--radius-card);background:#fcfcfd;
+    text-align:center;padding:72px 22px;color:var(--muted);
+    border:1px dashed var(--line-2);border-radius:var(--radius);background:var(--card-2);
   }
-  .empty h2{color:var(--ink);font-weight:600;font-size:17px;margin:0 0 6px}
-  .empty p{margin:0 0 18px;font-size:14px}
+  .empty-mark{width:44px;height:44px;margin:0 auto 16px;color:var(--brand);opacity:.7}
+  .empty-mark svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .empty h2{font-family:var(--serif);color:var(--ink);font-weight:500;font-size:21px;margin:0 0 7px}
+  .empty p{margin:0 0 20px;font-size:14px;max-width:380px;margin-left:auto;margin-right:auto}
 
-  .setup{max-width:640px;margin:40px auto;background:#fff;border:1px solid var(--line);border-radius:var(--radius-card);box-shadow:var(--shadow);padding:28px}
-  .setup h2{margin:0 0 4px;font-size:20px}
-  .setup p{color:var(--muted);margin:0 0 16px;font-size:14px}
-  .setup ol{margin:0;padding-left:20px;color:var(--ink);font-size:14px;line-height:1.7}
-  .setup code{background:#f3f4f6;border-radius:6px;padding:1px 6px;font-size:13px}
+  .setup{max-width:600px;margin:52px auto;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:32px}
+  .setup .pipe-eyebrow{margin-bottom:10px}
+  .setup h2{font-family:var(--serif);font-weight:500;margin:0 0 6px;font-size:24px}
+  .setup p{color:var(--muted);margin:0 0 18px;font-size:14.5px}
+  .setup ol{margin:0;padding-left:20px;color:var(--ink);font-size:14.5px;line-height:1.8}
+  .setup code{background:var(--card-2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:13px;font-family:var(--mono)}
 
   /* ---------- Modale ---------- */
-  .overlay{position:fixed;inset:0;background:rgba(20,22,26,.42);display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;z-index:50}
-  .overlay.open{display:flex}
-  .modal{background:#fff;border-radius:18px;box-shadow:0 20px 50px rgba(16,24,40,.22);width:100%;max-width:480px;margin:auto 0;padding:24px}
-  .modal h2{margin:0 0 18px;font-size:19px;letter-spacing:-.01em}
-  .field{margin-bottom:14px}
-  .field label{display:block;font-size:13px;font-weight:600;margin-bottom:5px}
-  .field input,.field select,.field textarea{
-    width:100%;font:inherit;font-size:14px;color:var(--ink);background:#fff;
-    border:1px solid var(--line-strong);border-radius:10px;padding:10px 12px;
-  }
-  .field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--accent);border-color:transparent}
-  .field textarea{resize:vertical;min-height:64px}
-  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .check{display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none;font-size:14px;font-weight:500}
-  .check input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
-  .modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:8px}
+  .overlay{position:fixed;inset:0;background:rgba(30,28,23,.44);display:none;align-items:flex-start;justify-content:center;padding:26px 16px;overflow-y:auto;z-index:50;backdrop-filter:blur(2px)}
+  .overlay.open{display:flex;animation:fade .2s ease both}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .modal{background:var(--card);border-radius:18px;box-shadow:var(--shadow-modal);width:100%;max-width:500px;margin:auto 0;padding:26px 26px 24px;animation:pop .24s cubic-bezier(.2,.7,.3,1) both}
+  @keyframes pop{from{opacity:0;transform:translateY(10px) scale(.99)}to{opacity:1;transform:none}}
+  .modal h2{font-family:var(--serif);font-weight:500;margin:0 0 4px;font-size:22px;letter-spacing:-.01em}
+  .modal-intro{color:var(--muted);font-size:13.5px;margin:0 0 20px;line-height:1.5}
 
+  /* bloc « coller un lien » mis en avant */
+  .analyse-block{background:var(--card-2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px;margin-bottom:20px}
+  .analyse-block .lbl{display:block;font-size:13px;font-weight:600;margin-bottom:8px}
   .lien-row{display:flex;gap:8px;align-items:stretch}
-  .lien-row input{flex:1;min-width:0}
+  .lien-row input{flex:1;min-width:0;font:inherit;font-size:14px;color:var(--ink);background:var(--card);border:1px solid var(--line-2);border-radius:var(--radius-xs);padding:10px 12px}
+  .lien-row input:focus{outline:2px solid var(--brand);border-color:transparent}
   .btn-analyse{
-    flex-shrink:0;border:1px solid var(--accent);background:var(--accent);color:#fff;
-    border-radius:10px;padding:0 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
-    font:inherit;font-size:13px;font-weight:600;
+    flex-shrink:0;border:1px solid var(--brand);background:var(--brand);color:#fff;
+    border-radius:var(--radius-xs);padding:0 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+    font:inherit;font-size:13px;font-weight:600;transition:background .15s;
   }
-  .btn-analyse:hover{background:var(--accent-hover)}
-  .btn-analyse:disabled{opacity:.65;cursor:default}
-  .btn-analyse svg{width:15px;height:15px;stroke-width:2}
+  .btn-analyse:hover{background:var(--brand-2)}
+  .btn-analyse:disabled{opacity:.6;cursor:default}
+  .btn-analyse svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   .btn-analyse.loading svg{animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
-  .analyse-msg{font-size:12.5px;margin-top:6px;min-height:1em;line-height:1.35}
-  .analyse-msg.ok{color:#15803d}
+  .analyse-hint{font-size:12px;color:var(--faint);margin-top:8px;line-height:1.4}
+  .analyse-msg{font-size:12.5px;margin-top:8px;min-height:1em;line-height:1.4}
+  .analyse-msg:empty{margin-top:0}
+  .analyse-msg.ok{color:var(--brand)}
   .analyse-msg.err{color:var(--danger)}
-  .etoile{color:var(--danger);font-weight:700;margin-left:4px;display:none}
-  .field input.champ-manquant{background:#fdecec;border-color:#e2908b}
 
-  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--ink);color:#fff;font-size:13.5px;font-weight:500;padding:10px 18px;border-radius:999px;box-shadow:var(--shadow-lift);transition:opacity .2s,transform .2s;pointer-events:none;z-index:60}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+  .field input,.field select,.field textarea{
+    width:100%;font:inherit;font-size:14px;color:var(--ink);background:var(--card);
+    border:1px solid var(--line-2);border-radius:var(--radius-xs);padding:10px 12px;
+  }
+  .field input::placeholder,.field textarea::placeholder{color:var(--faint)}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--brand);border-color:transparent}
+  .field textarea{resize:vertical;min-height:66px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .check{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;font-size:14px;font-weight:500;padding:2px 0}
+  .check input{width:18px;height:18px;accent-color:var(--brand);cursor:pointer}
+  .modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
+
+  .etoile{color:var(--danger);font-weight:700;margin-left:4px;display:none}
+  .field input.champ-manquant{background:var(--danger-tint);border-color:#e0938e}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--ink);color:#fff;font-size:13.5px;font-weight:500;padding:11px 20px;border-radius:999px;box-shadow:var(--shadow-lift);transition:opacity .2s,transform .2s;pointer-events:none;z-index:60}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
   @media (max-width:520px){
-    .wrap{padding:20px 14px 70px}
-    .brand h1{font-size:26px}
+    .wrap{padding:22px 15px 80px}
+    .wordmark span{font-size:24px}
     .grid{grid-template-columns:1fr}
+    header.top{gap:14px}
+    .actions{width:100%;justify-content:space-between}
   }
-  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
-  /* ---------- Écran connexion / espace ---------- */
-  .gate-screen{position:fixed;inset:0;background:#fff;display:none;align-items:center;justify-content:center;padding:24px;z-index:70}
+  /* ---------- Écran connexion / création d'espace ---------- */
+  .gate-screen{position:fixed;inset:0;background:var(--paper);display:none;align-items:center;justify-content:center;padding:24px;z-index:70}
   .gate-screen.open{display:flex}
-  .gate-card{width:100%;max-width:400px}
-  .gate-card h1{font-family:"Fraunces",Georgia,serif;font-style:italic;font-weight:500;font-size:30px;margin:0 0 6px;line-height:1}
-  .gate-card p{color:var(--muted);margin:0 0 20px;font-size:14px;line-height:1.5}
-  .gate-card label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.02em}
-  .gate-card .field{margin-bottom:12px}
-  .gate-card input{width:100%;font:inherit;font-size:15px;border:1px solid var(--line-strong);border-radius:10px;padding:11px 13px}
-  .gate-card input:focus{outline:2px solid var(--accent);border-color:transparent}
-  .gate-card .btn{width:100%;justify-content:center;padding:12px}
-  .gate-sep{display:flex;align-items:center;gap:12px;color:var(--muted-soft);font-size:12px;margin:20px 0}
-  .gate-sep::before,.gate-sep::after{content:"";flex:1;height:1px;background:var(--line)}
-  .gate-msg{font-size:13px;margin-top:12px;min-height:1em;line-height:1.4}
+  .gate-card{width:100%;max-width:410px}
+  .gate-brand{display:flex;align-items:center;gap:9px;margin-bottom:26px}
+  .gate-brand svg{width:22px;height:22px;color:var(--brand)}
+  .gate-brand svg path{stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .gate-brand span{font-family:var(--serif);font-weight:500;font-size:22px;letter-spacing:-.01em}
+  .gate-card h1{font-family:var(--serif);font-weight:500;font-size:29px;margin:0 0 8px;line-height:1.1;letter-spacing:-.01em}
+  .gate-card p{color:var(--muted);margin:0 0 22px;font-size:14px;line-height:1.55}
+  .gate-card .field label{display:block;font-family:var(--mono);font-size:11px;font-weight:500;color:var(--faint);margin-bottom:6px;text-transform:uppercase;letter-spacing:.1em}
+  .gate-card .field{margin-bottom:13px}
+  .gate-card input{width:100%;font:inherit;font-size:15px;border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:12px 14px;background:var(--card)}
+  .gate-card input:focus{outline:2px solid var(--brand);border-color:transparent}
+  .gate-card .btn{width:100%;justify-content:center;padding:13px}
+  .gate-sep{display:flex;align-items:center;gap:12px;color:var(--faint);font-size:12px;margin:20px 0}
+  .gate-sep::before,.gate-sep::after{content:"";flex:1;height:1px;background:var(--line-2)}
+  .gate-msg{font-size:13px;margin-top:14px;min-height:1em;line-height:1.45}
   .gate-msg.err{color:var(--danger)}
-  .gate-msg.ok{color:#15803d}
-  .linkbtn{background:none;border:none;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;padding:0;margin-top:20px;display:block}
+  .gate-msg.ok{color:var(--brand)}
+  .linkbtn{background:none;border:none;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;padding:0;margin-top:22px;display:block}
+  .linkbtn:hover{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -235,31 +319,36 @@
 <div class="wrap">
   <header class="top">
     <div class="brand">
-      <h1>Chez nous</h1>
-      <span class="sub" id="sousTitre">Suivi de nos annonces</span>
+      <div class="wordmark">
+        <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/></svg>
+        <span>Chez nous</span>
+      </div>
+      <span class="sub" id="sousTitre">Notre recherche</span>
     </div>
-    <div style="display:flex;gap:10px">
-      <button class="btn btn-ghost" id="btnPwd" title="Modifier le mot de passe de l'espace">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="10.5" width="16" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>
-      </button>
-      <button class="btn btn-ghost" id="btnLogout" title="Se déconnecter">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg>
-      </button>
-      <button class="btn btn-ghost" id="btnRefresh" title="Recharger">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.65 4.36A9 9 0 0 0 20.5 15"/></svg>
-      </button>
+    <div class="actions">
+      <div class="icon-group">
+        <button class="icon-ghost" id="btnRefresh" title="Recharger les annonces">
+          <svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.65 4.36A9 9 0 0 0 20.5 15"/></svg>
+        </button>
+        <button class="icon-ghost" id="btnPwd" title="Modifier le mot de passe de l'espace">
+          <svg viewBox="0 0 24 24"><rect x="4" y="10.5" width="16" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>
+        </button>
+        <button class="icon-ghost" id="btnLogout" title="Se déconnecter">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/></svg>
+        </button>
+      </div>
       <button class="btn btn-primary" id="btnAdd">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
         Ajouter une annonce
       </button>
     </div>
   </header>
 
-  <div id="pipeline" class="pipeline"></div>
+  <div id="pipeline"></div>
 
   <div class="tools">
     <div class="search">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       <input id="recherche" type="search" placeholder="Rechercher un lieu…" autocomplete="off" />
     </div>
     <select class="sort" id="tri">
@@ -278,18 +367,22 @@
 <div class="overlay" id="overlay">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitre">
     <h2 id="modalTitre">Nouvelle annonce</h2>
+    <p class="modal-intro">Colle le lien de l'annonce, on essaie de tout pré-remplir. Sinon, complète à la main.</p>
     <input type="hidden" id="f_id" />
-    <div class="field">
-      <label for="f_lien">Lien de l'annonce</label>
+
+    <div class="analyse-block">
+      <label class="lbl" for="f_lien">Lien de l'annonce</label>
       <div class="lien-row">
         <input id="f_lien" type="url" placeholder="Colle le lien SeLoger / Leboncoin…" />
         <button type="button" class="btn-analyse" id="btnAnalyse" title="Analyser le lien et pré-remplir les champs">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.65 4.36A9 9 0 0 0 20.5 15"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.65 4.36A9 9 0 0 0 20.5 15"/></svg>
           <span>Analyser</span>
         </button>
       </div>
+      <div class="analyse-hint">L'analyse fait au mieux selon les sites — vérifie toujours les champs remplis.</div>
       <div class="analyse-msg" id="analyseMsg"></div>
     </div>
+
     <div class="field">
       <label for="f_lieu">Localisation<span class="etoile" id="star_f_lieu" title="Non trouvé par l'analyse — à remplir">★</span></label>
       <input id="f_lieu" type="text" placeholder="ex : Champigny-sur-Marne" />
@@ -348,9 +441,9 @@
 </div>
 
 <div class="overlay" id="pwdOverlay">
-  <div class="modal" style="max-width:400px" role="dialog" aria-modal="true">
-    <h2>Modifier le mot de passe</h2>
-    <p style="color:var(--muted);font-size:13.5px;margin:-8px 0 16px;line-height:1.5">Nouveau mot de passe de l'espace « <span id="p_espace"></span> ». Pense à le communiquer aux personnes qui partagent cet espace.</p>
+  <div class="modal" style="max-width:410px" role="dialog" aria-modal="true">
+    <h2>Mot de passe de l'espace</h2>
+    <p class="modal-intro">Nouveau mot de passe de l'espace « <span id="p_espace"></span> ». Pense à le communiquer aux personnes qui partagent cet espace.</p>
     <div class="field"><label for="p_new">Nouveau mot de passe</label>
       <input id="p_new" type="password" autocomplete="new-password" placeholder="au moins 6 caractères" /></div>
     <div class="field"><label for="p_new2">Confirmer</label>
@@ -367,6 +460,16 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+/* ─────────────────────────── Icônes ─────────────────────────── */
+const ICO = {
+  check: `<svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>`,
+  ext:   `<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6M10 14 21 3"/></svg>`,
+  edit:  `<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`,
+  trash: `<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>`,
+  plus:  `<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>`,
+  house: `<svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/></svg>`,
+};
+
 /* ─────────────────────────── Statuts ─────────────────────────── */
 const STATUTS = [
   { key:"À contacter",           dot:"#8a8f98", color:"#5a5f66", bg:"#f3f4f6" },
@@ -428,8 +531,9 @@ function majEntete(){
 function afficherConnexion(){
   const g = document.getElementById("gate");
   g.innerHTML = `<div class="gate-card">
-    <h1>Chez nous</h1>
-    <p>Entre le nom de ton espace et son mot de passe. Ce sont les deux seules infos à partager avec les personnes qui doivent y accéder.</p>
+    <div class="gate-brand">${ICO.house}<span>Chez nous</span></div>
+    <h1>Retrouvez vos annonces</h1>
+    <p>Entrez le nom de votre espace et son mot de passe. Ce sont les deux seules infos à partager avec la personne qui suit la recherche avec vous.</p>
     <div class="field"><label>Nom de l'espace</label>
       <input id="g_nom" type="text" placeholder="ex : antonin" autocomplete="off" autocapitalize="none" /></div>
     <div class="field"><label>Mot de passe</label>
@@ -447,15 +551,16 @@ function afficherConnexion(){
 function afficherCreation(){
   const g = document.getElementById("gate");
   g.innerHTML = `<div class="gate-card">
-    <h1>Créer ton espace</h1>
-    <p>Un espace, c'est votre tableau d'annonces privé et partagé. Il te faut juste deux choses :</p>
-    <p style="margin:-8px 0 18px">• <b>un nom d'espace</b> — c'est ton identifiant pour te connecter. Choisis-le simple et <b>retiens-le bien</b>.<br>• <b>un mot de passe</b> — au moins 6 caractères.</p>
+    <div class="gate-brand">${ICO.house}<span>Chez nous</span></div>
+    <h1>Créer votre espace</h1>
+    <p>Un espace, c'est votre tableau d'annonces privé et partagé. Il vous faut juste deux choses :</p>
+    <p style="margin:-10px 0 20px">• <b>un nom d'espace</b> — c'est votre identifiant pour vous connecter. Choisissez-le simple et <b>retenez-le bien</b>.<br>• <b>un mot de passe</b> — au moins 6 caractères.</p>
     <div class="field"><label>Nom de l'espace</label>
       <input id="g_nom" type="text" placeholder="ex : antonin" autocomplete="off" autocapitalize="none" /></div>
     <div class="field"><label>Mot de passe</label>
       <input id="g_mdp" type="password" placeholder="au moins 6 caractères" autocomplete="new-password" /></div>
     <button class="btn btn-primary" id="g_creer2">Créer l'espace</button>
-    <p style="color:var(--muted);font-size:13px;margin-top:16px;line-height:1.5">Pour que ta copine ou un proche accède au <b>même</b> espace, donne-lui simplement <b>ce nom et ce mot de passe</b> : il cliquera « Entrer » avec, et vous partagerez les mêmes annonces.</p>
+    <p style="color:var(--muted);font-size:13px;margin-top:18px;line-height:1.55">Pour qu'une autre personne accède au <b>même</b> espace, donnez-lui simplement <b>ce nom et ce mot de passe</b> : elle cliquera « Entrer » avec, et vous partagerez les mêmes annonces.</p>
     <div class="gate-msg" id="g_msg"></div>
     <button class="linkbtn" id="g_retour">← Retour à la connexion</button>
   </div>`;
@@ -597,9 +702,10 @@ function rendre(){
 
   if(annonces.length === 0){
     contenu.innerHTML = `<div class="empty">
-      <h2>Aucune annonce pour l'instant</h2>
-      <p>Ajoute la première dès que tu tombes sur un bien intéressant.</p>
-      <button class="btn btn-primary" onclick="ouvrirModale()">Ajouter une annonce</button>
+      <div class="empty-mark">${ICO.house}</div>
+      <h2>La recherche commence ici</h2>
+      <p>Dès que vous tombez sur un bien qui vous plaît, ajoutez-le pour le suivre à deux.</p>
+      <button class="btn btn-primary" onclick="ouvrirModale()">${ICO.plus} Ajouter une annonce</button>
     </div>`;
     return;
   }
@@ -611,7 +717,7 @@ function rendre(){
   liste.sort(trierPar(state.tri));
 
   if(liste.length === 0){
-    contenu.innerHTML = `<div class="empty"><h2>Rien ici</h2><p>Aucune annonce ne correspond à ce filtre.</p></div>`;
+    contenu.innerHTML = `<div class="empty"><h2>Aucun résultat</h2><p>Aucune annonce ne correspond à ce filtre ou à cette recherche.</p></div>`;
     return;
   }
   contenu.innerHTML = `<div class="grid">${liste.map(carte).join("")}</div>`;
@@ -620,41 +726,46 @@ function rendre(){
 function carte(a){
   const s = metaStatut(a.statut);
   const lieu = echap(a.localisation) || "Sans lieu";
-  const prix = a.prix != null ? `${fmt(a.prix)} <small>€/mois</small>` : `<small style="font-size:15px">Prix non renseigné</small>`;
-  const ligne1 = [];
-  if(a.surface != null) ligne1.push(`<span><b>${fmt(a.surface)}</b> m²</span>`);
-  if(a.pieces  != null) ligne1.push(`<span><b>${a.pieces}</b> ${a.pieces>1?"pièces":"pièce"}</span>`);
-  const balcon = a.balcon ? `<span class="tag on">✓ Balcon / terrasse</span>` : `<span class="tag">Pas de balcon</span>`;
+  const prix = a.prix != null
+    ? `<span class="prix-val">${fmt(a.prix)}</span><span class="prix-unit">€ / mois</span>`
+    : `<span class="prix-none">Prix non renseigné</span>`;
+
+  const specs = [];
+  if(a.surface != null) specs.push(`<span><span class="spec-n">${fmt(a.surface)}</span> m²</span>`);
+  if(a.pieces  != null) specs.push(`<span><span class="spec-n">${a.pieces}</span> ${a.pieces>1?"pièces":"pièce"}</span>`);
+
+  const balcon = a.balcon
+    ? `<span class="feat on">${ICO.check} Balcon / terrasse</span>`
+    : `<span class="feat">Sans balcon</span>`;
   const parking =
-      a.parking === "Oui"          ? `<span class="tag on">✓ Parking</span>` :
-      a.parking === "Oui, payant"  ? `<span class="tag">Parking payant${a.parking_prix!=null?` · ${fmt(a.parking_prix)} €`:""}</span>` :
-      a.parking === "Non"          ? `<span class="tag">Pas de parking</span>` :
-                                     `<span class="tag faint">Parking à déterminer</span>`;
+      a.parking === "Oui"          ? `<span class="feat on">${ICO.check} Parking</span>` :
+      a.parking === "Oui, payant"  ? `<span class="feat">Parking payant${a.parking_prix!=null?` · ${fmt(a.parking_prix)} €`:""}</span>` :
+      a.parking === "Non"          ? `<span class="feat">Sans parking</span>` :
+                                     `<span class="feat faint">Parking à préciser</span>`;
 
   const options = STATUTS.map(o=>`<option value="${o.key}" ${o.key===a.statut?"selected":""}>${o.key}</option>`).join("");
-  const photo = a.photo ? `<img class="card-photo" src="${encodeURI(a.photo)}" alt="" loading="lazy" onerror="this.remove()">` : "";
+  const photo = a.photo
+    ? `<div class="card-photo"><img src="${encodeURI(a.photo)}" alt="" loading="lazy" onerror="this.closest('.card-photo').remove()"></div>`
+    : "";
 
   return `<article class="card">
     ${photo}
-    <div class="card-head">
-      <div class="lieu">${lieu}</div>
-      <span class="badge" style="background:${s.bg};color:${s.color}">${s.key}</span>
+    <div class="card-body">
+      <div class="status-line"><span class="status-dot" style="background:${s.dot}"></span><span class="status-name" style="color:${s.color}">${s.key}</span></div>
+      <h3 class="lieu">${lieu}</h3>
+      <div class="prix">${prix}</div>
+      ${specs.length ? `<div class="specs">${specs.join('<span class="spec-sep">·</span>')}</div>` : ""}
+      <div class="feats">${balcon}${parking}</div>
+      ${a.commentaire ? `<p class="comment">${echap(a.commentaire)}</p>` : ""}
     </div>
-    <div class="prix">${prix}</div>
-    ${ligne1.length ? `<div class="meta">${ligne1.join("")}</div>` : ""}
-    <div class="meta meta-amenities">${balcon}${parking}</div>
-    ${a.commentaire ? `<div class="comment">${echap(a.commentaire)}</div>` : ""}
     <div class="card-foot">
-      ${a.lien ? `<a class="lien-annonce" href="${encodeURI(a.lien)}" target="_blank" rel="noopener">Voir l'annonce
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6M10 14 21 3"/></svg></a>`
-       : `<span class="lien-annonce" style="color:var(--muted-soft)">Pas de lien</span>`}
-      <select class="statut-quick" title="Changer le statut" onchange="changerStatut('${a.id}', this.value)">${options}</select>
-      <button class="icon-btn" title="Éditer" onclick='ouvrirModale(${JSON.stringify(a).replace(/'/g,"&#39;")})'>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-      </button>
-      <button class="icon-btn del" title="Supprimer" onclick="supprimer('${a.id}')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
-      </button>
+      ${a.lien ? `<a class="lien-annonce" href="${encodeURI(a.lien)}" target="_blank" rel="noopener">Voir l'annonce ${ICO.ext}</a>`
+               : `<span class="lien-annonce off">Pas de lien</span>`}
+      <div class="foot-actions">
+        <select class="statut-quick" title="Changer le statut" onchange="changerStatut('${a.id}', this.value)">${options}</select>
+        <button class="icon-btn" title="Modifier" onclick='ouvrirModale(${JSON.stringify(a).replace(/'/g,"&#39;")})'>${ICO.edit}</button>
+        <button class="icon-btn del" title="Supprimer" onclick="supprimer('${a.id}')">${ICO.trash}</button>
+      </div>
     </div>
   </article>`;
 }
@@ -662,15 +773,31 @@ function carte(a){
 function rendrePipeline(){
   const total = annonces.length;
   const compte = k => annonces.filter(a => (a.statut||"À contacter")===k).length;
+
+  // Barre proportionnelle : d'un coup d'œil, où en est la recherche
+  let bar = "";
+  if(total > 0){
+    const segs = STATUTS.map(s=>({s, n:compte(s.key)})).filter(x=>x.n>0);
+    bar = `<div class="pipe-bar" role="img" aria-label="Répartition des annonces par statut">`
+        + segs.map(({s,n})=>{
+            const dim = (filtre!=="all" && filtre!==s.key) ? " dim" : "";
+            return `<span class="pipe-seg${dim}" style="flex:${n};background:${s.dot}" title="${s.key} · ${n}"></span>`;
+          }).join("")
+        + `</div>`;
+  }
+
+  // Légende cliquable = filtres (on masque les statuts à 0, sauf celui sélectionné)
   const chips = [`<button class="chip ${filtre==="all"?"on":""}" onclick="setFiltre('all')">
-      Toutes <span class="n">${total}</span></button>`];
+      <span class="chip-label">Toutes</span><span class="chip-n">${total}</span></button>`];
   STATUTS.forEach(s=>{
     const n = compte(s.key);
-    if(n===0 && filtre!==s.key) return; // n'affiche que les statuts utilisés
+    if(n===0 && filtre!==s.key) return;
     chips.push(`<button class="chip ${filtre===s.key?"on":""}" onclick="setFiltre('${s.key}')">
-      <span class="dot" style="background:${s.dot}"></span>${s.key} <span class="n">${n}</span></button>`);
+      <span class="chip-dot" style="background:${s.dot}"></span><span class="chip-label">${s.key}</span><span class="chip-n">${n}</span></button>`);
   });
-  document.getElementById("pipeline").innerHTML = chips.join("");
+
+  document.getElementById("pipeline").innerHTML =
+    `<div class="pipe-eyebrow">Où en est notre recherche</div>${bar}<div class="pipe-legend">${chips.join("")}</div>`;
 }
 
 function trierPar(t){
@@ -740,6 +867,7 @@ function brancherEvenements(){
 }
 function afficherSetup(){
   document.getElementById("contenu").innerHTML = `<div class="setup">
+    <div class="pipe-eyebrow">Dernière étape</div>
     <h2>Presque prêt 👋</h2>
     <p>Il reste à connecter la base de données (une seule fois).</p>
     <ol>
